@@ -1,0 +1,37 @@
+-- Problem: Find Golden Hour Customers
+-- R.Beats: 78.06%
+
+SELECT
+    customer_id,
+    COUNT(*) AS total_orders,
+    ROUND(
+        100.0 * SUM(
+            CASE
+                WHEN TIME(order_timestamp) BETWEEN '11:00:00' AND '14:00:00'
+                  OR TIME(order_timestamp) BETWEEN '18:00:00' AND '21:00:00'
+                THEN 1
+                ELSE 0
+            END
+        ) / COUNT(*),
+        0
+    ) AS peak_hour_percentage,
+    ROUND(AVG(order_rating), 2) AS average_rating
+FROM
+    restaurant_orders
+GROUP BY
+    customer_id
+HAVING
+    COUNT(*) >= 3
+    AND SUM(
+        CASE
+            WHEN TIME(order_timestamp) BETWEEN '11:00:00' AND '14:00:00'
+                OR TIME(order_timestamp) BETWEEN '18:00:00' AND '21:00:00'
+            THEN 1
+            ELSE 0
+        END
+   ) >= 0.6 * COUNT(*)
+   AND AVG(order_rating) >= 4.0
+   AND COUNT(order_rating) >= 0.5 * COUNT(*)
+ORDER BY
+    average_rating DESC,
+    customer_id DESC;
